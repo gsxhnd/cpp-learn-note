@@ -1,4 +1,3 @@
-~~~
 # 第 1 章 开始(Getting Start)
 
 最简单的`main`函数：
@@ -31,4 +30,3 @@ int main()
     return 0;
 }
 ```
-~~~
