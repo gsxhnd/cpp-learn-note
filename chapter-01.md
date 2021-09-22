@@ -1,8 +1,8 @@
-# 第 1 章 开始(Getting Start)
+# 第 1 章 开始
 
 最简单的`main`函数：
 
-```c++
+```cpp
 void main()
 {
     return;
@@ -11,7 +11,7 @@ void main()
 
 C++包含两种注释，注释界定符`/**/`通常用于多行注释，而双斜杠`//`通常用于单行或半行注释。
 
-```c++
+```cpp
 #include <iostream>
 /*
 * Simple main function:
@@ -30,3 +30,4 @@ int main()
     return 0;
 }
 ```
+
