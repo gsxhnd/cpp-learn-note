@@ -6,7 +6,7 @@
 
 算数类型分为两类：整型（integral type）、浮点型（floating-point type）。
 
-![2-1](../images/ch02/2-1.png)
+![2-1](../.gitbook/assets/2-1.png)
 
 `bool`类型的取值是`true`或`false`。
 
