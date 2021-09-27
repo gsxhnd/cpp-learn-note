@@ -27,3 +27,7 @@
 * 在算数表达式中不要使用`char`和`bool`类型。如果需要使用一个不大的整数，应该明确指定它的类型是`signed char`还是`unsigned char`。
 * 执行浮点数运算时建议使用`double`类型。
 
+#### 2.1.2 类型转换 \(Type Conversions\)
+
+
+
