@@ -1,12 +1,16 @@
-# 第 2 章 变量和基本类型(Variables and Basic Types)
+# 第 2 章 变量和基本类型
 
-## 2.1 基本内置类型 (Primitive Built-in Types)
+## 2.1 基本内置类型 \(Primitive Built-in Types\)
 
-### 2.1.1 算数类型 (Arithmetic Types)
+### 2.1.1 算数类型 \(Arithmetic Types\)
 
 算数类型分为两类：整型（integral type）、浮点型（floating-point type）。
 
+<<<<<<< HEAD:doc/chapter-02.md
 ![2-1](../.gitbook/assets/2-1.png)
+=======
+![2-1](.gitbook/assets/2-1.png)
+>>>>>>> 02ab05613c80d8953ce275d23cb0ae7870bcd3ed:chapter-02.md
 
 `bool`类型的取值是`true`或`false`。
 
@@ -22,10 +26,12 @@
 
 如何选择算数类型：
 
-- 当明确知晓数值不可能为负时，应该使用无符号类型。
+* 当明确知晓数值不可能为负时，应该使用无符号类型。
+* 使用`int`执行整数运算，如果数值超过了`int`的表示范围，应该使用`long long`类型。
+* 在算数表达式中不要使用`char`和`bool`类型。如果需要使用一个不大的整数，应该明确指定它的类型是`signed char`还是`unsigned char`。
+* 执行浮点数运算时建议使用`double`类型。
 
-- 使用`int`执行整数运算，如果数值超过了`int`的表示范围，应该使用`long long`类型。
+#### 2.1.2 类型转换 \(Type Conversions\)
 
-- 在算数表达式中不要使用`char`和`bool`类型。如果需要使用一个不大的整数，应该明确指定它的类型是`signed char`还是`unsigned char`。
 
-- 执行浮点数运算时建议使用`double`类型。
+
