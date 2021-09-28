@@ -194,3 +194,255 @@ int main()
 ```
 
 如果函数有可能用到某个全局变量，则不宜再定义一个同名的局部变量。
+
+## 2.3 复合类型 (Compound Type)
+
+### 2.3.1 引用 (References)
+
+引用为对象起了另外一个名字，引用类型引用（refers to）另外一种类型。通过将声明符写成`&d`的形式来定义引用类型，其中*d*是变量名称。
+
+```c++
+int ival = 1024;
+int &refVal = ival; // refVal refers to (is another name for) ival
+int &refVal2;       // error: a reference must be initialized
+```
+
+定义引用时，程序把引用和它的初始值绑定（bind）在一起，而不是将初始值拷贝给引用。一旦初始化完成，将无法再令引用重新绑定到另一个对象，因此引用必须初始化。
+
+引用不是对象，它只是为一个已经存在的对象所起的另外一个名字。
+
+声明语句中引用的类型实际上被用于指定它所绑定的对象类型。大部分情况下，引用的类型要和与之绑定的对象严格匹配。
+
+引用只能绑定在对象上，不能与字面值或某个表达式的计算结果绑定在一起。
+
+### 2.3.2 指针 (Pointer)
+
+与引用类似，指针也实现了对其他对象的间接访问。
+
+- 指针本身就是一个对象，允许对指针赋值和拷贝，而且在生命周期内它可以先后指向不同的对象。
+- 指针无须在定义时赋初值。和其他内置类型一样，在块作用域内定义的指针如果没有被初始化，也将拥有一个不确定的值。
+
+通过将声明符写成`*d`的形式来定义指针类型，其中*d*是变量名称。如果在一条语句中定义了多个指针变量，则每个量前都必须有符号`*`。
+
+```c++
+int *ip1, *ip2;     // both ip1 and ip2 are pointers to int
+double dp, *dp2;    // dp2 is a pointer to double; dp is a double
+```
+
+指针存放某个对象的地址，要想获取对象的地址，需要使用取地址符`&`。
+
+```c++
+int ival = 42;
+int *p = &ival; // p holds the address of ival; p is a pointer to ival
+```
+
+因为引用不是对象，没有实际地址，所以不能定义指向引用的指针。
+
+声明语句中指针的类型实际上被用于指定它所指向的对象类型。大部分情况下，指针的类型要和它指向的对象严格匹配。
+
+指针的值（即地址）应属于下列状态之一：
+
+- 指向一个对象。
+- 指向紧邻对象所占空间的下一个位置。
+- 空指针，即指针没有指向任何对象。
+- 无效指针，即上述情况之外的其他值。
+
+试图拷贝或以其他方式访问无效指针的值都会引发错误。
+
+如果指针指向一个对象，可以使用解引用（dereference）符`*`来访问该对象。
+
+```c++
+int ival = 42;
+int *p = &ival; // p holds the address of ival; p is a pointer to ival
+cout << *p;     // * yields the object to which p points; prints 42
+```
+
+给解引用的结果赋值就是给指针所指向的对象赋值。
+
+解引用操作仅适用于那些确实指向了某个对象的有效指针。
+
+空指针（null pointer）不指向任何对象，在试图使用一个指针前代码可以先检查它是否为空。得到空指针最直接的办法是用字面值`nullptr`来初始化指针。
+
+旧版本程序通常使用`NULL`（预处理变量，定义于头文件*cstdlib*中，值为 0）给指针赋值，但在 C++11 中，最好使用`nullptr`初始化空指针。
+
+```c++
+int *p1 = nullptr;  // equivalent to int *p1 = 0;
+int *p2 = 0;        // directly initializes p2 from the literal constant 0
+// must #include cstdlib
+int *p3 = NULL;     // equivalent to int *p3 = 0;
+```
+
+建议初始化所有指针。
+
+`void*`是一种特殊的指针类型，可以存放任意对象的地址，但不能直接操作`void*`指针所指的对象。
+
+### 2.3.3 理解复合类型的声明 (Understanding Compound Type Declarations)
+
+指向指针的指针（Pointers to Pointers）：
+
+```c++
+int ival = 1024;
+int *pi = &ival;    // pi points to an int
+int **ppi = &pi;    // ppi points to a pointer to an int
+```
+
+![2-4](.gitbook/assets/2-4.png)
+
+指向指针的引用（References to Pointers）：
+
+```C++
+int i = 42;
+int *p;         // p is a pointer to int
+int *&r = p;    // r is a reference to the pointer p
+r = &i;         // r refers to a pointer; assigning &i to r makes p point to i
+*r = 0;         // dereferencing r yields i, the object to which p points; changes i to 0
+```
+
+面对一条比较复杂的指针或引用的声明语句时，从右向左阅读有助于弄清它的真实含义。
+
+## 2.4 const 限定符 (Const Qualifier)
+
+在变量类型前添加关键字`const`可以创建值不能被改变的对象。`const`变量必须被初始化。
+
+```c++
+const int bufSize = 512;    // input buffer size
+bufSize = 512;      // error: attempt to write to const object
+```
+
+默认情况下，`const`对象被设定成仅在文件内有效。当多个文件中出现了同名的`const`变量时，其实等同于在不同文件中分别定义了独立的变量。
+
+如果想在多个文件间共享`const`对象：
+
+- 若`const`对象的值在编译时已经确定，则应该定义在头文件中。其他源文件包含该头文件时，不会产生重复定义错误。
+
+- 若`const`对象的值直到运行时才能确定，则应该在头文件中声明，在源文件中定义。此时`const`变量的声明和定义前都应该添加`extern`关键字。
+
+  ```c++
+  // file_1.cc defines and initializes a const that is accessible to other files
+  extern const int bufSize = fcn();
+  // file_1.h
+  extern const int bufSize;   // same bufSize as defined in file_1.cc
+  ```
+
+### 2.4.1 const 的引用 (References to const)
+
+把引用绑定在`const`对象上即为对常量的引用（reference to const）。对常量的引用不能被用作修改它所绑定的对象。
+
+```c++
+const int ci = 1024;
+const int &r1 = ci;     // ok: both reference and underlying object are const
+r1 = 42;        // error: r1 is a reference to const
+int &r2 = ci;   // error: non const reference to a const object
+```
+
+大部分情况下，引用的类型要和与之绑定的对象严格匹配。但是有两个例外：
+
+- 初始化常量引用时允许用任意表达式作为初始值，只要该表达式的结果能转换成引用的类型即可。
+
+  ```c++
+  int i = 42;
+  const int &r1 = i;      // we can bind a const int& to a plain int object
+  const int &r2 = 42;     // ok: r1 is a reference to const
+  const int &r3 = r1 * 2;     // ok: r3 is a reference to const
+  int &r4 = r * 2;        // error: r4 is a plain, non const reference
+  ```
+
+- 允许为一个常量引用绑定非常量的对象、字面值或者一般表达式。
+
+  ```c++
+  double dval = 3.14;
+  const int &ri = dval;
+  ```
+
+### 2.4.2 指针和 const (Pointers and const)
+
+指向常量的指针（pointer to const）不能用于修改其所指向的对象。常量对象的地址只能使用指向常量的指针来存放，但是指向常量的指针可以指向一个非常量对象。
+
+```c++
+const double pi = 3.14;     // pi is const; its value may not be changed
+double *ptr = &pi;          // error: ptr is a plain pointer
+const double *cptr = &pi;   // ok: cptr may point to a double that is const
+*cptr = 42;         // error: cannot assign to *cptr
+double dval = 3.14; // dval is a double; its value can be changed
+cptr = &dval;       // ok: but can't change dval through cptr
+```
+
+定义语句中把`*`放在`const`之前用来说明指针本身是一个常量，常量指针（const pointer）必须初始化。
+
+```c++
+int errNumb = 0;
+int *const curErr = &errNumb;   // curErr will always point to errNumb
+const double pi = 3.14159;
+const double *const pip = &pi;  // pip is a const pointer to a const object
+```
+
+指针本身是常量并不代表不能通过指针修改其所指向的对象的值，能否这样做完全依赖于其指向对象的类型。
+
+### 2.4.3 顶层 const (Top-Level const)
+
+顶层`const`表示指针本身是个常量，底层`const`（low-level const）表示指针所指的对象是一个常量。指针类型既可以是顶层`const`也可以是底层`const`。
+
+```c++
+int i = 0;
+int *const p1 = &i;     // we can't change the value of p1; const is top-level
+const int ci = 42;      // we cannot change ci; const is top-level
+const int *p2 = &ci;    // we can change p2; const is low-level
+const int *const p3 = p2; // right-most const is top-level, left-most is not
+const int &r = ci;      // const in reference types is always low-level
+```
+
+当执行拷贝操作时，常量是顶层`const`还是底层`const`区别明显：
+
+- 顶层`const`没有影响。拷贝操作不会改变被拷贝对象的值，因此拷入和拷出的对象是否是常量无关紧要。
+
+  ```c++
+  i = ci;     // ok: copying the value of ci; top-level const in ci is ignored
+  p2 = p3;    // ok: pointed-to type matches; top-level const in p3 is ignored
+  ```
+
+- 拷入和拷出的对象必须具有相同的底层`const`资格。或者两个对象的数据类型可以相互转换。一般来说，非常量可以转换成常量，反之则不行。
+
+  ```c++
+  int *p = p3;    // error: p3 has a low-level const but p doesn't
+  p2 = p3;        // ok: p2 has the same low-level const qualification as p3
+  p2 = &i;        // ok: we can convert int* to const int*
+  int &r = ci;    // error: can't bind an ordinary int& to a const int object
+  const int &r2 = i;  // ok: can bind const int& to plain int
+  ```
+
+### 2.4.4 constexpr 和常量表达式 (constexpr and Constant Expressions)
+
+常量表达式（constant expressions）指值不会改变并且在编译过程就能得到计算结果的表达式。
+
+一个对象是否为常量表达式由它的数据类型和初始值共同决定。
+
+```c++
+const int max_files = 20;           // max_files is a constant expression
+const int limit = max_files + 1;    // limit is a constant expression
+int staff_size = 27;        // staff_size is not a constant expression
+const int sz = get_size();  // sz is not a constant expression
+```
+
+C++11 允许将变量声明为`constexpr`类型以便由编译器来验证变量的值是否是一个常量表达式。
+
+```c++
+constexpr int mf = 20;          // 20 is a constant expression
+constexpr int limit = mf + 1;   // mf + 1 is a constant expression
+constexpr int sz = size();      // ok only if size is a constexpr function
+```
+
+指针和引用都能定义成`constexpr`，但是初始值受到严格限制。`constexpr`指针的初始值必须是 0、`nullptr`或者是存储在某个固定地址中的对象。
+
+函数体内定义的普通变量一般并非存放在固定地址中，因此`constexpr`指针不能指向这样的变量。相反，函数体外定义的变量地址固定不变，可以用来初始化`constexpr`指针。
+
+在`constexpr`声明中如果定义了一个指针，限定符`constexpr`仅对指针本身有效，与指针所指的对象无关。`constexpr`把它所定义的对象置为了顶层`const`。
+
+```c++
+constexpr int *p = nullptr;     // p是指向int的const指针
+constexpr int i = 0;
+constexpr const int *cp = &i;   // cp是指向const int的const指针
+```
+
+`const`和`constexpr`限定的值都是常量。但`constexpr`对象的值必须在编译期间确定，而`const`对象的值可以延迟到运行期间确定。
+
+建议使用`constexpr`修饰表示数组大小的对象，因为数组的大小必须在编译期间确定且不能改变。
