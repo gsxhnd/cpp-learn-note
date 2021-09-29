@@ -446,3 +446,118 @@ constexpr const int *cp = &i;   // cp是指向const int的const指针
 `const`和`constexpr`限定的值都是常量。但`constexpr`对象的值必须在编译期间确定，而`const`对象的值可以延迟到运行期间确定。
 
 建议使用`constexpr`修饰表示数组大小的对象，因为数组的大小必须在编译期间确定且不能改变。
+
+## 2.5 处理类型 (Dealing with Types)
+
+### 2.5.1 类型别名 (Type Aliases)
+
+类型别名是某种类型的同义词，传统方法是使用关键字`typedef`定义类型别名。
+
+```c++
+typedef double wages;   // wages is a synonym for double
+typedef wages base, *p; // base is a synonym for double, p for double*
+```
+
+C++11 使用关键字`using`进行别名声明（alias declaration），作用是把等号左侧的名字规定成等号右侧类型的别名。
+
+```c++
+using SI = Sales_item; // SI is a synonym for Sales_item
+```
+
+### 2.5.2 auto 类型说明符 (The auto Type Specifier)
+
+C++11 新增`auto`类型说明符，能让编译器自动分析表达式所属的类型。`auto`定义的变量必须有初始值。
+
+```c++
+// the type of item is deduced from the type of the result of adding val1 and val2
+auto item = val1 + val2;    // item initialized to the result of val1 + val2
+```
+
+编译器推断出来的`auto`类型有时和初始值的类型并不完全一样。
+
+- 当引用被用作初始值时，编译器以引用对象的类型作为`auto`的类型。
+
+  ```c++
+  int i = 0, &r = i;
+  auto a = r;     // a is an int (r is an alias for i, which has type int)
+  ```
+
+- `auto`一般会忽略顶层`const`。
+
+  ```c++
+  const int ci = i, &cr = ci;
+  auto b = ci;    // b is an int (top-level const in ci is dropped)
+  auto c = cr;    // c is an int (cr is an alias for ci whose const is top-level)
+  auto d = &i;    // d is an int*(& of an int object is int*)
+  auto e = &ci;   // e is const int*(& of a const object is low-level const)
+  ```
+
+  如果希望推断出的`auto`类型是一个顶层`const`，需要显式指定`const auto`。
+
+  ```C++
+  const auto f = ci;  // deduced type of ci is int; f has type const int
+  ```
+
+设置类型为`auto`的引用时，原来的初始化规则仍然适用，初始值中的顶层常量属性仍然保留。
+
+```c++
+auto &g = ci;   // g is a const int& that is bound to ci
+auto &h = 42;   // error: we can't bind a plain reference to a literal
+const auto &j = 42;     // ok: we can bind a const reference to a literal
+```
+
+### 2.5.3 decltype 类型指示符 (The decltype Type Specifier)
+
+C++11 新增`decltype`类型指示符，作用是选择并返回操作数的数据类型，此过程中编译器不实际计算表达式的值。
+
+```c++
+decltype(f()) sum = x;  // sum has whatever type f returns
+```
+
+`decltype`处理顶层`const`和引用的方式与`auto`有些不同，如果`decltype`使用的表达式是一个变量，则`decltype`返回该变量的类型（包括顶层`const`和引用）。
+
+```c++
+const int ci = 0, &cj = ci;
+decltype(ci) x = 0;     // x has type const int
+decltype(cj) y = x;     // y has type const int& and is bound to x
+decltype(cj) z;     // error: z is a reference and must be initialized
+```
+
+如果`decltype`使用的表达式不是一个变量，则`decltype`返回表达式结果对应的类型。如果表达式的内容是解引用操作，则`decltype`将得到引用类型。如果`decltype`使用的是一个不加括号的变量，则得到的结果就是该变量的类型；如果给变量加上了一层或多层括号，则`decltype`会得到引用类型，因为变量是一种可以作为赋值语句左值的特殊表达式。
+
+`decltype((var))`的结果永远是引用，而`decltype(var)`的结果只有当*var*本身是一个引用时才会是引用。
+
+## 2.6 自定义数据结构 (Defining Our Own Data Structures)
+
+C++11 规定可以为类的数据成员（data member）提供一个类内初始值（in-class initializer）。创建对象时，类内初始值将用于初始化数据成员，没有初始值的成员将被默认初始化。
+
+类内初始值不能使用圆括号。
+
+类定义的最后应该加上分号。
+
+头文件（header file）通常包含那些只能被定义一次的实体，如类、`const`和`constexpr`变量。
+
+头文件一旦改变，相关的源文件必须重新编译以获取更新之后的声明。
+
+头文件保护符（header guard）依赖于预处理变量（preprocessor variable）。预处理变量有两种状态：已定义和未定义。`#define`指令把一个名字设定为预处理变量。`#ifdef`指令当且仅当变量已定义时为真，`#ifndef`指令当且仅当变量未定义时为真。一旦检查结果为真，则执行后续操作直至遇到`#endif`指令为止。
+
+```c++
+#ifndef SALES_DATA_H
+#define SALES_DATA_H
+#include <string>
+struct Sales_data
+{
+    std::string bookNo;
+    unsigned units_sold = 0;
+    double revenue = 0.0;
+};
+#endif
+```
+
+在高级版本的 IDE 环境中，可以直接使用`#pragma once`命令来防止头文件的重复包含。
+
+预处理变量无视 C++语言中关于作用域的规则。
+
+整个程序中的预处理变量，包括头文件保护符必须唯一。预处理变量的名字一般均为大写。
+
+头文件即使目前还没有被包含在任何其他头文件中，也应该设置保护符。
